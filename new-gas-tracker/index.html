@@ -6,64 +6,56 @@
 <title>Tracking new gas unit projects</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --text: #1a1a1a;
-    --text-muted: #333;
-    --axis: #444;
-    --grid: #e6e6e6;
-    --bg: #ffffff;
-    --font: "Source Sans 3", "Source Sans Pro", Helvetica, Arial, sans-serif;
-  }
   * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; background: var(--bg); }
+  html, body { margin: 0; padding: 0; background: var(--bg, #fff); }
   body { font-family: var(--font); color: var(--text); }
 
   .gt {
-    max-width: 1100px;
     margin: 0 auto;
     padding: 16px 16px 12px;
   }
   .gt-title {
-    font-size: clamp(22px, 4.2vw, 46px);
-    font-weight: 800;
+    font-family: var(--title-font);
+    font-size: var(--title-size);
+    font-weight: var(--title-weight);
+    text-align: var(--title-align);
+    color: var(--text);
     line-height: 1.1;
-    text-align: center;
-    margin: 0 0 clamp(16px, 3vw, 36px);
+    margin: 0 0 var(--title-gap);
     letter-spacing: -0.01em;
   }
   .gt-row {
     position: relative;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    column-gap: clamp(56px, 11vw, 150px);
   }
   .gt-chart { position: relative; min-width: 0; }
+  .gt-head { display: flex; flex-direction: column; justify-content: space-between; }
   .gt-chart h2 {
-    font-size: clamp(15px, 1.9vw, 21px);
-    font-weight: 700;
-    color: var(--text-muted);
+    font-size: var(--heading-size);
+    font-weight: var(--heading-weight);
+    color: var(--heading);
     margin: 0 0 4px;
     line-height: 1.2;
   }
   .gt-legend {
     display: flex;
     flex-wrap: wrap;
-    justify-content: flex-end;
+    justify-content: var(--legend-align);
     gap: 2px 12px;
-    font-size: clamp(12px, 1.35vw, 14.5px);
-    color: var(--text-muted);
+    font-size: var(--legend-size);
+    color: var(--heading);
     margin: 0 0 6px;
     min-height: 20px;
   }
-  .gt-legend span { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
-  .gt-legend i { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+  .gt-legend span { display: inline-flex; align-items: center; gap: 0.35em; white-space: nowrap; }
+  .gt-legend i { width: 0.82em; height: 0.82em; border-radius: 50%; display: inline-block; }
   .gt-chart svg { display: block; width: 100%; overflow: visible; }
-  .gt-chart svg text { font-family: var(--font); fill: var(--axis); }
+  .gt-chart svg text { font-family: var(--font); }
   .gt-hit { touch-action: pan-y; cursor: crosshair; }
 
-  .gt-arrow { position: absolute; pointer-events: none; }
+  .gt-arrow { position: absolute; left: 0; top: 0; z-index: 1; overflow: visible; pointer-events: none; }
   .gt-arrow-down { display: none; justify-content: center; margin: 6px 0 10px; }
 
   .gt-tooltip {
@@ -71,18 +63,19 @@
     z-index: 5;
     pointer-events: none;
     background: #fff;
+    color: #1a1a1a;
     border: 1px solid #d0d0d0;
     border-radius: 4px;
     box-shadow: 0 2px 8px rgba(0,0,0,.15);
     padding: 8px 10px;
-    font-size: 13px;
+    font-size: var(--tooltip-size);
     line-height: 1.35;
     min-width: 170px;
     opacity: 0;
     transition: opacity .12s;
   }
   .gt-tooltip.on { opacity: 1; }
-  .gt-tooltip b { display: block; font-size: 14px; margin-bottom: 4px; }
+  .gt-tooltip b { display: block; font-size: 1.08em; margin-bottom: 4px; }
   .gt-tooltip .r { display: flex; align-items: center; gap: 6px; }
   .gt-tooltip .r i { width: 9px; height: 9px; border-radius: 50%; flex: none; }
   .gt-tooltip .r span { flex: 1; }
@@ -90,10 +83,11 @@
   .gt-tooltip .t { border-top: 1px solid #e3e3e3; margin-top: 5px; padding-top: 4px; }
 
   .gt-footer {
-    font-size: clamp(15px, 2.2vw, 24px);
-    margin: clamp(10px, 2vw, 18px) 0 0;
+    font-size: var(--footer-size);
+    margin: 14px 0 0;
     color: var(--text);
   }
+  .gt-footer:empty { display: none; }
   .sr-only {
     position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
     overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
@@ -104,22 +98,138 @@
   .gt.stacked .gt-arrow { display: none; }
   .gt.stacked .gt-arrow-down { display: flex; }
   .gt.stacked .gt-legend { justify-content: flex-start; }
+  .gt.no-arrow .gt-arrow-down { display: none; }
+
+  /* ---------- design mode (only when the page is opened with ?design) ---------- */
+  html.gd-html, html.gd-html body { background: #e9ebef; }
+  body.gd-on { padding-right: 360px; }
+  body.gd-on #gt-frame { background: var(--bg); margin: 24px auto; box-shadow: 0 1px 6px rgba(0,0,0,.15); max-width: calc(100% - 32px); }
+  .gd-panel {
+    position: fixed; top: 0; right: 0; bottom: 0; width: 360px; z-index: 100;
+    overflow-y: auto; background: #fff; border-left: 1px solid #d6d9de;
+    font: 13px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; color: #1f2328;
+  }
+  .gd-head { position: sticky; top: 0; z-index: 2; background: #fff; border-bottom: 1px solid #e3e5e8; padding: 12px 14px; }
+  .gd-head h3 { margin: 0 0 2px; font-size: 15px; }
+  .gd-head p { margin: 0 0 10px; color: #59636e; font-size: 12px; }
+  .gd-btns { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .gd-panel button {
+    font: inherit; font-size: 12px; padding: 5px 10px; border-radius: 6px; cursor: pointer;
+    border: 1px solid #c9ced4; background: #f6f8fa; color: #1f2328;
+  }
+  .gd-panel button.gd-primary { background: #1f6feb; border-color: #1f6feb; color: #fff; }
+  .gd-panel button:hover { filter: brightness(0.96); }
+  .gd-msg { margin-top: 8px; font-size: 12px; color: #1a7f37; min-height: 1em; }
+  .gd-msg.err { color: #cf222e; }
+  .gd-out { width: 100%; height: 160px; margin-top: 8px; font: 11px/1.4 ui-monospace, Menlo, monospace; display: none; }
+  .gd-width { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+  .gd-width input[type=range] { flex: 1; }
+  .gd-panel details { border-bottom: 1px solid #eceef1; }
+  .gd-panel summary { cursor: pointer; padding: 10px 14px; font-weight: 600; font-size: 13px; }
+  .gd-row { padding: 5px 14px 8px; }
+  .gd-row label { display: block; font-weight: 500; margin-bottom: 3px; }
+  .gd-row small { display: block; color: #6e7781; font-size: 11px; margin-top: 2px; }
+  .gd-ctl { display: flex; align-items: center; gap: 6px; }
+  .gd-ctl input[type=text], .gd-ctl select { flex: 1; font: inherit; padding: 4px 6px; border: 1px solid #c9ced4; border-radius: 5px; min-width: 0; }
+  .gd-ctl input[type=range] { flex: 1; min-width: 0; }
+  .gd-ctl input[type=number] { width: 64px; font: inherit; padding: 3px 4px; border: 1px solid #c9ced4; border-radius: 5px; }
+  .gd-ctl input[type=color] { width: 34px; height: 26px; padding: 0 2px; border: 1px solid #c9ced4; border-radius: 5px; background: #fff; }
+  .gd-ctl .gd-hex { flex: 1; }
+  @media (max-width: 820px) {
+    body.gd-on { padding-right: 0; }
+    .gd-panel { position: static; width: auto; border-left: 0; border-top: 1px solid #d6d9de; }
+  }
 </style>
 </head>
 <body>
+<div id="gt-frame">
 <div class="gt" id="gt">
-  <h1 class="gt-title">Tracking number of new gas unit projects</h1>
+  <h1 class="gt-title" id="gt-title"></h1>
   <div class="gt-row" id="gt-row">
     <div class="gt-chart" id="chart-left"></div>
-    <div class="gt-arrow-down" aria-hidden="true">
-      <svg width="28" height="44" viewBox="0 0 28 44"><path d="M14 2 V34" stroke="#000" stroke-width="6"/><path d="M3 26 L14 41 L25 26" fill="none" stroke="#000" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"/></svg>
-    </div>
+    <div class="gt-arrow-down" aria-hidden="true"><svg id="gt-arrow-down" width="60" height="58" style="overflow:visible"></svg></div>
     <div class="gt-chart" id="chart-right"></div>
     <svg class="gt-arrow" id="gt-arrow" aria-hidden="true"></svg>
   </div>
   <p class="gt-footer" id="gt-footer"></p>
   <table class="sr-only" id="gt-table"></table>
 </div>
+</div>
+
+<script>
+// ==== SETTINGS START ====
+/* ================================================================
+ * DESIGN SETTINGS
+ * Change any value below to restyle the chart. Colours are hex codes,
+ * sizes are in pixels. Keep the quotes and the comma on each line.
+ * Easier: open this page with ?design at the end of its address to
+ * adjust everything with sliders, then copy or download the result.
+ * ================================================================ */
+var SETTINGS = {
+  // ---- Text ----
+  title: "Tracking number of new gas unit projects", // Main title
+  leftTitle: "In development",                 // Heading above the left chart
+  rightTitle: "Already left development since start of tracking", // Heading above the right chart
+  footer: "Power plants tracked since {first} | Last update: {last}", // Footer; {first} and {last} are filled in from the data. Leave empty to hide
+  titleAlign: "center",                        // Main title alignment
+
+  // ---- Fonts ----
+  font: "Source Sans 3",                       // Font for everything (any Google Fonts name)
+  titleFont: "",                               // Font for the main title only (empty = same as above)
+  titleSize: 46,                               // Main title size in px (shrinks on small screens)
+  titleWeight: 800,                            // Main title boldness
+  headingSize: 21,                             // Chart heading size in px
+  headingWeight: 700,                          // Chart heading boldness
+  legendSize: 14.5,                            // Legend text size in px
+  axisSize: 15,                                // Axis label size in px
+  tooltipSize: 13,                             // Tooltip text size in px
+  footerSize: 24,                              // Footer text size in px
+
+  // ---- Colours ----
+  background: "#ffffff",                       // Page background
+  textColor: "#1a1a1a",                        // Title and footer text
+  headingColor: "#333333",                     // Chart headings and legend text
+  axisColor: "#444444",                        // Axis numbers and labels
+  gridColor: "#e8e8e8",                        // Horizontal grid lines
+  colorAnnounced: "#FFA3A3",                   // Announced
+  colorPreConstruction: "#F46245",             // Pre-construction
+  colorConstruction: "#F92B21",                // Construction
+  colorShelved: "#AFA36A",                     // Shelved
+  colorAlreadyLeft: "#333333",                 // Dark area: already left development
+  colorAlreadyLeftDots: "#000000",             // Line and dots on the dark area
+  colorCancelled: "#46BE50",                   // Cancelled
+  colorMothballed: "#CFA7E5",                  // Mothballed
+  colorOperating: "#A954D1",                   // Operating
+
+  // ---- Chart style ----
+  areaOpacity: 0.85,                           // How solid the coloured areas are (0 = invisible, 1 = solid)
+  lineWidth: 2,                                // Line along the top of each area, in px (0 = none)
+  showDots: true,                              // Show a dot at every quarter
+  dotSize: 4.5,                                // Dot radius in px
+  showGrid: true,                              // Show horizontal grid lines
+  legendAlign: "right",                        // Legend alignment when charts sit side by side
+
+  // ---- Layout ----
+  maxWidth: 1100,                              // Widest the whole graphic gets, in px
+  chartGap: 150,                               // Space between the two charts (where the arrow sits), in px
+  chartHeight: 0.88,                           // Chart height as a share of its width
+  stackBelow: 640,                             // Below this width (px) the charts stack vertically
+
+  // ---- Arrow ----
+  arrowShow: true,                             // Show the arrow
+  arrowColor: "#000000",                       // Arrow colour
+  arrowThickness: 8,                           // Line thickness in px
+  arrowHeadSize: 18,                           // Arrowhead size in px
+  arrowHeadStyle: "open",                      // Arrowhead: open chevron or filled triangle
+  arrowLineStyle: "solid",                     // Line style
+  arrowCurve: 0,                               // Bend: 0 = straight, + curves up, - curves down
+  arrowLevel: 0.5,                             // Start height on the dark area (0 = bottom, 1 = top)
+  arrowOffsetY: 0,                             // Nudge the whole arrow up (-) or down (+), in px
+  arrowStartGap: 10,                           // Space between the left chart and the arrow start, in px
+  arrowEndGap: 4,                              // Space between the arrow tip and the right chart, in px
+};
+// ==== SETTINGS END ====
+</script>
 
 <script>
 (function () {
@@ -153,17 +263,17 @@
 
   var LEFT_KEY = "Already left development since start of tracking";
 
-  /* Series listed bottom-of-stack first. `legend` = show in legend. */
+  /* Series listed bottom-of-stack first; colours come from the settings. */
   var CHARTS = {
     left: {
       el: "chart-left",
-      title: "In development",
+      titleKey: "leftTitle",
       series: [
-        { key: LEFT_KEY, label: "Already left development", color: "#000000", fill: "#333333", legend: false },
-        { key: "Shelved",          color: "#AFA36A" },
-        { key: "Construction",     color: "#F92B21" },
-        { key: "Pre-construction", color: "#F46245" },
-        { key: "Announced",        color: "#FFA3A3" }
+        { key: LEFT_KEY, label: "Already left development", colorKey: "colorAlreadyLeftDots", fillKey: "colorAlreadyLeft" },
+        { key: "Shelved",          colorKey: "colorShelved" },
+        { key: "Construction",     colorKey: "colorConstruction" },
+        { key: "Pre-construction", colorKey: "colorPreConstruction" },
+        { key: "Announced",        colorKey: "colorAnnounced" }
       ],
       legendOrder: ["Announced", "Pre-construction", "Construction", "Shelved"],
       totals: function (d) {
@@ -173,11 +283,11 @@
     },
     right: {
       el: "chart-right",
-      title: "Already left development since start of tracking",
+      titleKey: "rightTitle",
       series: [
-        { key: "Cancelled",  color: "#46BE50" },
-        { key: "Mothballed", color: "#CFA7E5" },
-        { key: "Operating",  color: "#A954D1" }
+        { key: "Cancelled",  colorKey: "colorCancelled" },
+        { key: "Mothballed", colorKey: "colorMothballed" },
+        { key: "Operating",  colorKey: "colorOperating" }
       ],
       legendOrder: ["Cancelled", "Mothballed", "Operating"],
       totals: function (d) {
@@ -186,13 +296,100 @@
     }
   };
 
-  var STACK_BREAKPOINT = 640;   // container width (px) below which charts stack
-  var AREA_OPACITY = 0.85;
+  /* ------------------------------------------------------------------
+   * SETTINGS SCHEMA — defaults, help text and design-mode controls.
+   * Anything missing from the SETTINGS block falls back to `def` here.
+   * ------------------------------------------------------------------ */
+  var WEIGHTS = [300, 400, 500, 600, 700, 800, 900];
+  var GROUPS = [
+    { name: "Text", fields: [
+      { key: "title",      type: "text", def: "Tracking number of new gas unit projects", help: "Main title" },
+      { key: "leftTitle",  type: "text", def: "In development", help: "Heading above the left chart" },
+      { key: "rightTitle", type: "text", def: "Already left development since start of tracking", help: "Heading above the right chart" },
+      { key: "footer",     type: "text", def: "Power plants tracked since {first} | Last update: {last}", help: "Footer; {first} and {last} are filled in from the data. Leave empty to hide" },
+      { key: "titleAlign", type: "select", options: ["left", "center", "right"], def: "center", help: "Main title alignment" }
+    ]},
+    { name: "Fonts", fields: [
+      { key: "font",          type: "font", def: "Source Sans 3", help: "Font for everything (any Google Fonts name)" },
+      { key: "titleFont",     type: "font", def: "", help: "Font for the main title only (empty = same as above)" },
+      { key: "titleSize",     type: "range", min: 16, max: 72, step: 1, def: 46, help: "Main title size in px (shrinks on small screens)" },
+      { key: "titleWeight",   type: "select", options: WEIGHTS, def: 800, help: "Main title boldness" },
+      { key: "headingSize",   type: "range", min: 11, max: 32, step: 0.5, def: 21, help: "Chart heading size in px" },
+      { key: "headingWeight", type: "select", options: WEIGHTS, def: 700, help: "Chart heading boldness" },
+      { key: "legendSize",    type: "range", min: 10, max: 22, step: 0.5, def: 14.5, help: "Legend text size in px" },
+      { key: "axisSize",      type: "range", min: 9, max: 22, step: 0.5, def: 15, help: "Axis label size in px" },
+      { key: "tooltipSize",   type: "range", min: 10, max: 18, step: 0.5, def: 13, help: "Tooltip text size in px" },
+      { key: "footerSize",    type: "range", min: 10, max: 32, step: 0.5, def: 24, help: "Footer text size in px" }
+    ]},
+    { name: "Colours", fields: [
+      { key: "background",           type: "color", def: "#ffffff", help: "Page background" },
+      { key: "textColor",            type: "color", def: "#1a1a1a", help: "Title and footer text" },
+      { key: "headingColor",         type: "color", def: "#333333", help: "Chart headings and legend text" },
+      { key: "axisColor",            type: "color", def: "#444444", help: "Axis numbers and labels" },
+      { key: "gridColor",            type: "color", def: "#e8e8e8", help: "Horizontal grid lines" },
+      { key: "colorAnnounced",       type: "color", def: "#FFA3A3", help: "Announced" },
+      { key: "colorPreConstruction", type: "color", def: "#F46245", help: "Pre-construction" },
+      { key: "colorConstruction",    type: "color", def: "#F92B21", help: "Construction" },
+      { key: "colorShelved",         type: "color", def: "#AFA36A", help: "Shelved" },
+      { key: "colorAlreadyLeft",     type: "color", def: "#333333", help: "Dark area: already left development" },
+      { key: "colorAlreadyLeftDots", type: "color", def: "#000000", help: "Line and dots on the dark area" },
+      { key: "colorCancelled",       type: "color", def: "#46BE50", help: "Cancelled" },
+      { key: "colorMothballed",      type: "color", def: "#CFA7E5", help: "Mothballed" },
+      { key: "colorOperating",       type: "color", def: "#A954D1", help: "Operating" }
+    ]},
+    { name: "Chart style", fields: [
+      { key: "areaOpacity", type: "range", min: 0, max: 1, step: 0.05, def: 0.85, help: "How solid the coloured areas are (0 = invisible, 1 = solid)" },
+      { key: "lineWidth",   type: "range", min: 0, max: 6, step: 0.5, def: 2, help: "Line along the top of each area, in px (0 = none)" },
+      { key: "showDots",    type: "check", def: true, help: "Show a dot at every quarter" },
+      { key: "dotSize",     type: "range", min: 1, max: 10, step: 0.5, def: 4.5, help: "Dot radius in px" },
+      { key: "showGrid",    type: "check", def: true, help: "Show horizontal grid lines" },
+      { key: "legendAlign", type: "select", options: ["left", "right"], def: "right", help: "Legend alignment when charts sit side by side" }
+    ]},
+    { name: "Layout", fields: [
+      { key: "maxWidth",    type: "range", min: 600, max: 1600, step: 10, def: 1100, help: "Widest the whole graphic gets, in px" },
+      { key: "chartGap",    type: "range", min: 40, max: 260, step: 2, def: 150, help: "Space between the two charts (where the arrow sits), in px" },
+      { key: "chartHeight", type: "range", min: 0.5, max: 1.4, step: 0.02, def: 0.88, help: "Chart height as a share of its width" },
+      { key: "stackBelow",  type: "range", min: 360, max: 1000, step: 10, def: 640, help: "Below this width (px) the charts stack vertically" }
+    ]},
+    { name: "Arrow", fields: [
+      { key: "arrowShow",      type: "check", def: true, help: "Show the arrow" },
+      { key: "arrowColor",     type: "color", def: "#000000", help: "Arrow colour" },
+      { key: "arrowThickness", type: "range", min: 1, max: 16, step: 0.5, def: 8, help: "Line thickness in px" },
+      { key: "arrowHeadSize",  type: "range", min: 4, max: 40, step: 1, def: 18, help: "Arrowhead size in px" },
+      { key: "arrowHeadStyle", type: "select", options: ["open", "filled"], def: "open", help: "Arrowhead: open chevron or filled triangle" },
+      { key: "arrowLineStyle", type: "select", options: ["solid", "dashed", "dotted"], def: "solid", help: "Line style" },
+      { key: "arrowCurve",     type: "range", min: -150, max: 150, step: 1, def: 0, help: "Bend: 0 = straight, + curves up, - curves down" },
+      { key: "arrowLevel",     type: "range", min: 0, max: 1, step: 0.05, def: 0.5, help: "Start height on the dark area (0 = bottom, 1 = top)" },
+      { key: "arrowOffsetY",   type: "range", min: -200, max: 200, step: 1, def: 0, help: "Nudge the whole arrow up (-) or down (+), in px" },
+      { key: "arrowStartGap",  type: "range", min: -40, max: 120, step: 1, def: 10, help: "Space between the left chart and the arrow start, in px" },
+      { key: "arrowEndGap",    type: "range", min: -40, max: 120, step: 1, def: 4, help: "Space between the arrow tip and the right chart, in px" }
+    ]}
+  ];
+
+  var FIELDS = {};
+  GROUPS.forEach(function (g) { g.fields.forEach(function (f) { FIELDS[f.key] = f; }); });
+
+  function fileSettings() {
+    var src = window.SETTINGS || {}, out = {};
+    Object.keys(FIELDS).forEach(function (k) { out[k] = k in src ? src[k] : FIELDS[k].def; });
+    return out;
+  }
+
+  var S = fileSettings();
+  var DESIGN = /[?&]design\b/i.test(location.search);
+  var STORE = "gas-tracker-design-settings";
+  if (DESIGN) {
+    try {
+      var saved = JSON.parse(localStorage.getItem(STORE) || "null");
+      if (saved) Object.keys(saved).forEach(function (k) { if (k in FIELDS) S[k] = saved[k]; });
+    } catch (e) {}
+  }
+
   var NS = "http://www.w3.org/2000/svg";
 
   /* ---------- parse (tab-separated, or CSV with quoted fields) ---------- */
   function parseTable(text) {
-    text = text.replace(/^\uFEFF/, "").trim();
+    text = text.replace(/^﻿/, "").trim();
     var sep = text.split(/\r?\n/)[0].indexOf("\t") > -1 ? "\t" : ",";
     var rows = [], row = [], cell = "", q = false;
     for (var i = 0; i < text.length; i++) {
@@ -251,11 +448,39 @@
       });
   }
 
+  /* ---------- Google Fonts, loaded on demand from the settings ---------- */
+  var fontsRequested = {};
+  function loadFont(family, done) {
+    family = (family || "").trim();
+    if (!family || fontsRequested[family]) return;
+    fontsRequested[family] = true;
+    var fam = encodeURIComponent(family).replace(/%20/g, "+");
+    // Not every family has every weight; fall back to fewer weights if Google rejects the request
+    var variants = [":wght@300;400;500;600;700;800;900", ":wght@400;600;700;800", ":wght@400;700", ""];
+    (function attempt(i) {
+      var link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = "https://fonts.googleapis.com/css2?family=" + fam + variants[i] + "&display=swap";
+      link.onload = function () {
+        if (document.fonts && document.fonts.load) document.fonts.load('700 16px "' + family + '"').then(done, done);
+        else done();
+      };
+      link.onerror = function () {
+        link.parentNode.removeChild(link);
+        if (i + 1 < variants.length) attempt(i + 1);
+        else console.warn('Gas tracker: "' + family + '" was not found on Google Fonts');
+      };
+      document.head.appendChild(link);
+    })(0);
+  }
+
   loadData().then(start);
 
   function start(table) {
   var headers = table.headers, data = table.data;
   var PERIOD = headers[0];
+  var root = document.getElementById("gt");
+  var rowEl = document.getElementById("gt-row");
 
   function prettyPeriod(p) {
     var m = /^(\d{2})Q([1-4])$/.exec(p);
@@ -273,7 +498,12 @@
     if (parent) parent.appendChild(n);
     return n;
   }
+  function clear(n) { while (n.firstChild) n.removeChild(n.firstChild); }
+  function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
   function seriesLabel(s) { return s.label || s.key; }
+  function seriesColor(s) { return S[s.colorKey]; }
+  function seriesFill(s) { return S[s.fillKey || s.colorKey]; }
+  function fontStack(f) { return '"' + f + '", "Source Sans Pro", Helvetica, Arial, sans-serif'; }
 
   // Shared y-scale so both panels are directly comparable
   var yMaxData = 0;
@@ -286,24 +516,32 @@
   var Y_MAX = yMaxData * 1.04;
   var tickStep = yMaxData > 250 ? 100 : yMaxData > 100 ? 50 : yMaxData > 40 ? 20 : 10;
 
-  /* ---------- static bits: headings, legends, footer, a11y table ---------- */
-  Object.keys(CHARTS).forEach(function (id) {
-    var c = CHARTS[id], box = document.getElementById(c.el);
-    var h = document.createElement("h2"); h.textContent = c.title; box.appendChild(h);
-    var lg = document.createElement("div"); lg.className = "gt-legend";
-    c.legendOrder.forEach(function (key) {
-      var s = c.series.filter(function (x) { return x.key === key; })[0];
-      var item = document.createElement("span");
-      item.innerHTML = '<i style="background:' + s.color + '"></i>' + seriesLabel(s);
-      lg.appendChild(item);
+  /* ---------- headings, legends, footer (rebuilt when settings change) ---------- */
+  function buildStatic() {
+    document.getElementById("gt-title").textContent = S.title;
+    Object.keys(CHARTS).forEach(function (id) {
+      var c = CHARTS[id], box = document.getElementById(c.el);
+      clear(box);
+      var head = document.createElement("div"); head.className = "gt-head"; box.appendChild(head);
+      c.head = head;
+      var h = document.createElement("h2"); h.textContent = S[c.titleKey]; head.appendChild(h);
+      var lg = document.createElement("div"); lg.className = "gt-legend";
+      c.legendOrder.forEach(function (key) {
+        var s = c.series.filter(function (x) { return x.key === key; })[0];
+        var item = document.createElement("span"), dot = document.createElement("i");
+        dot.style.background = seriesColor(s);
+        item.appendChild(dot);
+        item.appendChild(document.createTextNode(seriesLabel(s)));
+        lg.appendChild(item);
+      });
+      head.appendChild(lg);
+      c.svg = el("svg", { role: "img", "aria-label": S[c.titleKey] + " — stacked area chart by quarter" }, box);
+      c.tip = document.createElement("div"); c.tip.className = "gt-tooltip"; box.appendChild(c.tip);
     });
-    box.appendChild(lg);
-    c.svg = el("svg", { role: "img", "aria-label": c.title + " — stacked area chart by quarter" }, box);
-    c.tip = document.createElement("div"); c.tip.className = "gt-tooltip"; box.appendChild(c.tip);
-  });
-
-  document.getElementById("gt-footer").textContent =
-    "Power plants tracked since " + data[0][PERIOD] + " | Last update: " + footerPeriod(data[data.length - 1][PERIOD]);
+    document.getElementById("gt-footer").textContent = (S.footer || "")
+      .replace(/\{first\}/g, data[0][PERIOD])
+      .replace(/\{last\}/g, footerPeriod(data[data.length - 1][PERIOD]));
+  }
 
   (function buildTable() {
     var t = document.getElementById("gt-table");
@@ -322,12 +560,12 @@
   function drawChart(c, width, height) {
     var svg = c.svg;
     c.tip.classList.remove("on");
-    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    clear(svg);
     svg.setAttribute("width", width);
     svg.setAttribute("height", height);
     svg.setAttribute("viewBox", "0 0 " + width + " " + height);
 
-    var fs = width < 360 ? 12 : width < 480 ? 13 : 15;
+    var fs = S.axisSize * clamp(width / 520, 0.8, 1);
     var m = { top: 8, right: 14, bottom: fs + 14, left: fs * 2.4 + 8 };
     var iw = width - m.left - m.right, ih = height - m.top - m.bottom;
     var n = data.length;
@@ -335,16 +573,16 @@
     var step = (iw - pad * 2) / (n - 1);
     var x = function (i) { return m.left + pad + i * step; };
     var y = function (v) { return m.top + ih - (v / Y_MAX) * ih; };
-    c.x = x; c.y = y; c.m = m; c.step = step;
+    c.x = x; c.y = y;
 
     // grid + y labels
     var g = el("g", {}, svg);
     for (var v = 0; v <= Y_MAX; v += tickStep) {
-      if (v > 0) el("line", { x1: m.left, x2: width - m.right, y1: y(v), y2: y(v), stroke: "#e8e8e8" }, g);
-      var t = el("text", { x: m.left - 8, y: y(v), "text-anchor": "end", "dominant-baseline": "middle", "font-size": fs }, g);
+      if (v > 0 && S.showGrid) el("line", { x1: m.left, x2: width - m.right, y1: y(v), y2: y(v), stroke: S.gridColor }, g);
+      var t = el("text", { x: m.left - 8, y: y(v), "text-anchor": "end", "dominant-baseline": "middle", "font-size": fs, fill: S.axisColor }, g);
       t.textContent = v;
     }
-    el("line", { x1: m.left, x2: width - m.right, y1: y(0), y2: y(0), stroke: "#cfcfcf" }, g);
+    el("line", { x1: m.left, x2: width - m.right, y1: y(0), y2: y(0), stroke: S.axisColor, "stroke-opacity": 0.3 }, g);
 
     // x labels: always first period, then every 4th counting back from the latest, avoiding collisions
     var minGap = fs * 3;
@@ -355,8 +593,8 @@
       var px = x(i);
       if (placed.some(function (q) { return Math.abs(q - px) < minGap; })) return;
       placed.push(px);
-      el("line", { x1: px, x2: px, y1: y(0), y2: y(0) + 5, stroke: "#cfcfcf" }, g);
-      var tx = el("text", { x: px, y: y(0) + fs + 6, "text-anchor": "middle", "font-size": fs }, g);
+      el("line", { x1: px, x2: px, y1: y(0), y2: y(0) + 5, stroke: S.axisColor, "stroke-opacity": 0.3 }, g);
+      var tx = el("text", { x: px, y: y(0) + fs + 6, "text-anchor": "middle", "font-size": fs, fill: S.axisColor }, g);
       tx.textContent = data[i][PERIOD];
     });
 
@@ -375,30 +613,33 @@
     layers.forEach(function (L) {
       var top = L.pts.map(function (p, i) { return x(i).toFixed(1) + "," + y(p.y1).toFixed(1); });
       var bot = L.pts.map(function (p, i) { return x(i).toFixed(1) + "," + y(p.y0).toFixed(1); }).reverse();
-      el("path", { d: "M" + top.join("L") + "L" + bot.join("L") + "Z", fill: L.s.fill || L.s.color, "fill-opacity": AREA_OPACITY }, areas);
-      el("path", { d: "M" + top.join("L"), fill: "none", stroke: L.s.color, "stroke-width": 2, "stroke-linejoin": "round", "stroke-opacity": L.s.fill ? 0.6 : 1 }, areas);
+      el("path", { d: "M" + top.join("L") + "L" + bot.join("L") + "Z", fill: seriesFill(L.s), "fill-opacity": S.areaOpacity }, areas);
+      if (S.lineWidth > 0) {
+        el("path", { d: "M" + top.join("L"), fill: "none", stroke: seriesColor(L.s), "stroke-width": S.lineWidth,
+          "stroke-linejoin": "round", "stroke-opacity": L.s.fillKey ? 0.6 : 1 }, areas);
+      }
     });
 
-    var r = width < 420 ? 3.2 : 4.5;
+    var r = S.dotSize * (width < 420 ? 0.7 : 1);
+    var baseR = S.showDots ? r : 0;
     var guide = el("line", { y1: m.top, y2: y(0), stroke: "#888", "stroke-dasharray": "3 3", opacity: 0 }, svg);
     var dots = el("g", {}, svg);
-    c.dotEls = layers.map(function (L) {
+    var dotEls = layers.map(function (L) {
       return L.pts.map(function (p, i) {
-        return el("circle", { cx: x(i), cy: y(p.y1), r: r, fill: L.s.color }, dots);
+        return el("circle", { cx: x(i), cy: y(p.y1), r: baseR, fill: seriesColor(L.s) }, dots);
       });
     });
-    c.layers = layers;
 
     // interaction
-    var hit = el("rect", { x: m.left, y: m.top, width: iw, height: ih, fill: "transparent", class: "gt-hit" }, svg);
+    var hit = el("rect", { x: m.left, y: m.top, width: iw, height: ih, fill: "transparent", "class": "gt-hit" }, svg);
     var active = -1;
     function show(evt) {
       var rect = svg.getBoundingClientRect();
       var mx = (evt.clientX - rect.left) * (width / rect.width);
-      var idx = Math.max(0, Math.min(n - 1, Math.round((mx - m.left - pad) / step)));
+      var idx = clamp(Math.round((mx - m.left - pad) / step), 0, n - 1);
       if (idx !== active) {
-        if (active > -1) c.dotEls.forEach(function (row) { row[active].setAttribute("r", r); });
-        c.dotEls.forEach(function (row) { row[idx].setAttribute("r", r * 1.55); });
+        if (active > -1) dotEls.forEach(function (row) { row[active].setAttribute("r", baseR); });
+        dotEls.forEach(function (row) { row[idx].setAttribute("r", Math.max(r, 3) * 1.55); });
         active = idx;
         guide.setAttribute("x1", x(idx)); guide.setAttribute("x2", x(idx));
         guide.setAttribute("opacity", 1);
@@ -406,8 +647,8 @@
       }
       c.tip.classList.add("on");
       var tipW = c.tip.offsetWidth, tipH = c.tip.offsetHeight;
-      var boxW = c.svg.parentNode.clientWidth;
-      var pr = c.svg.parentNode.getBoundingClientRect();
+      var box = c.svg.parentNode, boxW = box.clientWidth;
+      var pr = box.getBoundingClientRect();
       var ox = rect.left - pr.left, oy = rect.top - pr.top;
       var left = ox + x(idx) + 14;
       if (left + tipW > boxW) left = ox + x(idx) - tipW - 14;
@@ -419,7 +660,7 @@
     function hide() {
       c.tip.classList.remove("on");
       guide.setAttribute("opacity", 0);
-      if (active > -1) c.dotEls.forEach(function (row) { row[active].setAttribute("r", r); });
+      if (active > -1) dotEls.forEach(function (row) { row[active].setAttribute("r", baseR); });
       active = -1;
     }
     hit.addEventListener("pointermove", show);
@@ -431,7 +672,7 @@
     var d = data[i];
     var h = "<b>" + prettyPeriod(d[PERIOD]) + "</b>";
     c.series.slice().reverse().forEach(function (s) {
-      h += '<div class="r"><i style="background:' + s.color + '"></i><span>' + seriesLabel(s) + "</span><em>" + d[s.key] + "</em></div>";
+      h += '<div class="r"><i style="background:' + seriesColor(s) + '"></i><span>' + seriesLabel(s) + "</span><em>" + d[s.key] + "</em></div>";
     });
     c.totals(d).forEach(function (t, k) {
       h += '<div class="r' + (k === 0 ? " t" : "") + '"><span>' + t[0] + "</span><em>" + t[1] + "</em></div>";
@@ -439,56 +680,317 @@
     return h;
   }
 
-  /* ---------- arrow linking "already left" (left) to the right panel ---------- */
-  function drawArrow() {
-    var a = document.getElementById("gt-arrow");
-    while (a.firstChild) a.removeChild(a.firstChild);
-    var row = document.getElementById("gt-row").getBoundingClientRect();
+  /* ---------- arrow ---------- */
+  // Draws an arrow from (x1,y1) to (x2,y2) into `svg`, styled by the arrow settings.
+  function arrowShape(svg, x1, y1, x2, y2, curve, scale) {
+    var sw = S.arrowThickness * scale;
+    var len = Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
+    if (len < 1) return;
+    var head = Math.min(S.arrowHeadSize * scale, len * 0.4);
+    // quadratic control point, pushed sideways by `curve` (positive = up for a left-to-right arrow)
+    var nx = (y1 - y2) / len, ny = (x2 - x1) / len;
+    var cx = (x1 + x2) / 2 - nx * curve, cy = (y1 + y2) / 2 - ny * curve;
+    var ang = Math.atan2(y2 - cy, x2 - cx), ux = Math.cos(ang), uy = Math.sin(ang);
+    var px = -uy, py = ux;
+    var filled = S.arrowHeadStyle === "filled";
+    var tx = x2 - (filled ? 0 : ux * sw / 2), ty = y2 - (filled ? 0 : uy * sw / 2);
+    var back = filled ? head * 0.8 : sw * 0.8;
+    var sx = tx - ux * back, sy = ty - uy * back;
+
+    var shaft = { d: "M" + x1 + " " + y1 + " Q" + cx + " " + cy + " " + sx + " " + sy,
+      fill: "none", stroke: S.arrowColor, "stroke-width": sw, "stroke-linecap": "butt" };
+    if (S.arrowLineStyle === "dashed") shaft["stroke-dasharray"] = sw * 2.2 + " " + sw * 1.4;
+    if (S.arrowLineStyle === "dotted") { shaft["stroke-dasharray"] = "0 " + sw * 1.9; shaft["stroke-linecap"] = "round"; }
+    el("path", shaft, svg);
+
+    var bx = tx - ux * head, by = ty - uy * head;
+    if (filled) {
+      var wHead = head * 0.62;
+      el("path", { d: "M" + tx + " " + ty + " L" + (bx + px * wHead) + " " + (by + py * wHead) + " L" + (bx - px * wHead) + " " + (by - py * wHead) + "Z",
+        fill: S.arrowColor }, svg);
+    } else {
+      var wOpen = head * 0.75;
+      el("path", { d: "M" + (bx + px * wOpen) + " " + (by + py * wOpen) + " L" + tx + " " + ty + " L" + (bx - px * wOpen) + " " + (by - py * wOpen),
+        fill: "none", stroke: S.arrowColor, "stroke-width": sw, "stroke-linejoin": "round", "stroke-linecap": "round" }, svg);
+    }
+  }
+
+  function drawArrows(stacked, k) {
+    var a = document.getElementById("gt-arrow"), down = document.getElementById("gt-arrow-down");
+    clear(a); clear(down);
+    root.classList.toggle("no-arrow", !S.arrowShow);
+    if (!S.arrowShow) return;
+    if (stacked) {
+      arrowShape(down, 30, 2, 30, 56, 0, 0.75);
+      return;
+    }
+    // Wide layout: from the middle of the dark "already left" layer to the right-hand chart
+    var row = rowEl.getBoundingClientRect();
+    a.setAttribute("width", row.width); a.setAttribute("height", row.height);
     var L = CHARTS.left, R = CHARTS.right;
     var ls = L.svg.getBoundingClientRect(), rs = R.svg.getBoundingClientRect();
     var last = data.length - 1;
     var scale = ls.width / (+L.svg.getAttribute("width"));
-    var x1 = ls.left - row.left + (L.x(last) + 10) * scale;
-    var x2 = rs.left - row.left - 4;
-    var yy = ls.top - row.top + L.y(data[last][LEFT_KEY] / 2) * scale;
-    if (x2 - x1 < 30) return;
-    var w = x2 - x1, h = 30, sw = Math.max(4, Math.min(8, w / 18));
-    a.style.left = x1 + "px"; a.style.top = (yy - h / 2) + "px";
-    a.setAttribute("width", w); a.setAttribute("height", h);
-    var head = Math.min(18, w * 0.3);
-    el("path", { d: "M0 " + h / 2 + " H" + (w - head * 0.6), stroke: "#000", "stroke-width": sw }, a);
-    el("path", { d: "M" + (w - head) + " " + (h / 2 - head * 0.75) + " L" + (w - sw / 2) + " " + h / 2 + " L" + (w - head) + " " + (h / 2 + head * 0.75),
-      fill: "none", stroke: "#000", "stroke-width": sw, "stroke-linejoin": "round", "stroke-linecap": "round" }, a);
+    var x1 = ls.left - row.left + (L.x(last) + S.arrowStartGap) * scale;
+    var x2 = rs.left - row.left - S.arrowEndGap;
+    var yy = ls.top - row.top + L.y(data[last][LEFT_KEY] * S.arrowLevel) * scale + S.arrowOffsetY;
+    if (x2 - x1 < 20) return;
+    arrowShape(a, x1, yy, x2, yy, S.arrowCurve, Math.max(0.6, k));
   }
 
   /* ---------- layout / responsiveness ---------- */
-  var root = document.getElementById("gt");
   var lastW = -1;
-  function render() {
+  function render(force) {
     var W = root.clientWidth;
-    if (W === lastW) return;
+    if (!W || (!force && W === lastW)) return;
     lastW = W;
-    root.classList.toggle("stacked", W < STACK_BREAKPOINT);
+    var stacked = W < S.stackBelow;
+    root.classList.toggle("stacked", stacked);
+
+    // Text shrinks in proportion to the width, down to a readable minimum
+    var k = Math.min(1, W / S.maxWidth);
+    function sz(size, min) { return Math.max(Math.min(min, size), size * k) + "px"; }
+    var st = root.style;
+    st.setProperty("--title-size", sz(S.titleSize, 22));
+    st.setProperty("--title-gap", sz(36, 16));
+    st.setProperty("--heading-size", sz(S.headingSize, 15));
+    st.setProperty("--legend-size", sz(S.legendSize, 12));
+    st.setProperty("--footer-size", sz(S.footerSize, 15));
+    rowEl.style.columnGap = stacked ? "0px" : Math.max(Math.min(56, S.chartGap), Math.min(S.chartGap, W * 0.12)) + "px";
+
+    // Give both headings the same height so the two plots line up
+    var heads = [CHARTS.left.head, CHARTS.right.head];
+    heads.forEach(function (h) { h.style.minHeight = ""; });
+    if (!stacked) {
+      var hMax = Math.max(heads[0].offsetHeight, heads[1].offsetHeight);
+      heads.forEach(function (h) { h.style.minHeight = hMax + "px"; });
+    }
+
     var chartW = document.getElementById("chart-left").clientWidth;
-    var stacked = W < STACK_BREAKPOINT;
-    var chartH = stacked ? Math.max(240, Math.min(360, chartW * 0.7))
-                         : Math.max(260, Math.min(620, chartW * 0.88));
+    var chartH = stacked ? clamp(chartW * S.chartHeight * 0.8, 220, 440)
+                         : clamp(chartW * S.chartHeight, 220, 760);
     drawChart(CHARTS.left, chartW, chartH);
     drawChart(CHARTS.right, chartW, chartH);
-    if (!stacked) drawArrow();
+    drawArrows(stacked, k);
     postHeight();
   }
 
-  // Lets a parent page auto-size the iframe (see README / embed snippet)
+  function applySettings() {
+    var de = document.documentElement.style;
+    de.setProperty("--font", fontStack(S.font));
+    de.setProperty("--title-font", fontStack(S.titleFont || S.font));
+    de.setProperty("--title-weight", S.titleWeight);
+    de.setProperty("--title-align", S.titleAlign);
+    de.setProperty("--heading-weight", S.headingWeight);
+    de.setProperty("--tooltip-size", S.tooltipSize + "px");
+    de.setProperty("--legend-align", S.legendAlign === "left" ? "flex-start" : "flex-end");
+    de.setProperty("--bg", S.background);
+    de.setProperty("--text", S.textColor);
+    de.setProperty("--heading", S.headingColor);
+    root.style.maxWidth = S.maxWidth + "px";
+    loadFont(S.font, rerender);
+    loadFont(S.titleFont, rerender);
+    buildStatic();
+    render(true);
+  }
+  function rerender() { render(true); }
+
+  // Lets a parent page auto-size the iframe (see the WordPress embed snippet)
   function postHeight() {
     if (window.parent === window) return;
     window.parent.postMessage({ type: "gas-tracker-height", height: document.documentElement.scrollHeight }, "*");
   }
 
-  if (window.ResizeObserver) new ResizeObserver(render).observe(root);
-  else window.addEventListener("resize", render);
-  render();
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { lastW = -1; render(); });
+  applySettings();
+  if (window.ResizeObserver) new ResizeObserver(function () { render(); }).observe(root);
+  else window.addEventListener("resize", function () { render(); });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(rerender);
+  if (DESIGN) initDesignMode(applySettings);
+  }
+
+  /* ==================================================================
+   * DESIGN MODE — open the page with ?design to get a live settings panel.
+   * Visitors never see this.
+   * ================================================================== */
+  var MARK_START = "// ==== SETTINGS " + "START ====";
+  var MARK_END = "// ==== SETTINGS " + "END ====";
+  var SETTINGS_HEADER = [
+    "/* ================================================================",
+    " * DESIGN SETTINGS",
+    " * Change any value below to restyle the chart. Colours are hex codes,",
+    " * sizes are in pixels. Keep the quotes and the comma on each line.",
+    " * Easier: open this page with ?design at the end of its address to",
+    " * adjust everything with sliders, then copy or download the result.",
+    " * ================================================================ */"
+  ].join("\n");
+
+  function settingsSource() {
+    var lines = [SETTINGS_HEADER, "var SETTINGS = {"];
+    GROUPS.forEach(function (g, gi) {
+      if (gi) lines.push("");
+      lines.push("  // ---- " + g.name + " ----");
+      g.fields.forEach(function (f) {
+        var s = "  " + f.key + ": " + JSON.stringify(S[f.key]) + ",";
+        while (s.length < 46) s += " ";
+        lines.push(s + " // " + f.help);
+      });
+    });
+    lines.push("};");
+    return lines.join("\n");
+  }
+
+  function initDesignMode(apply) {
+    document.documentElement.classList.add("gd-html");
+    document.body.classList.add("gd-on");
+    var frame = document.getElementById("gt-frame");
+
+    var FONT_SUGGESTIONS = ["Source Sans 3", "Inter", "Roboto", "Open Sans", "Lato", "Montserrat", "Poppins", "Work Sans",
+      "IBM Plex Sans", "Noto Sans", "Barlow", "DM Sans", "Fira Sans", "Libre Franklin", "Nunito Sans", "Public Sans",
+      "Manrope", "Space Grotesk", "Merriweather", "Lora", "Playfair Display", "Roboto Slab", "Oswald", "Bebas Neue"];
+
+    var panel = document.createElement("aside");
+    panel.className = "gd-panel";
+    panel.innerHTML =
+      '<div class="gd-head">' +
+        "<h3>Design mode</h3>" +
+        "<p>Changes show live and are kept in this browser only. When you're done, copy or download the result.</p>" +
+        '<div class="gd-width"><span>Preview width</span><input type="range" min="320" max="1600" step="10" id="gd-w"><span id="gd-wv">Fit</span></div>' +
+        '<div class="gd-btns">' +
+          '<button data-w="375">Phone</button><button data-w="768">Tablet</button><button data-w="0">Fit window</button>' +
+        "</div>" +
+        '<div class="gd-btns">' +
+          '<button class="gd-primary" id="gd-copy">Copy settings</button>' +
+          '<button id="gd-dl">Download HTML</button>' +
+          '<button id="gd-reset">Reset</button>' +
+        "</div>" +
+        '<div class="gd-msg" id="gd-msg"></div>' +
+        '<textarea class="gd-out" id="gd-out" readonly wrap="off"></textarea>' +
+      "</div>";
+    var dl = document.createElement("datalist");
+    dl.id = "gd-fonts";
+    FONT_SUGGESTIONS.forEach(function (f) { var o = document.createElement("option"); o.value = f; dl.appendChild(o); });
+    panel.appendChild(dl);
+
+    var pending = false;
+    function set(key, val) {
+      S[key] = val;
+      try { localStorage.setItem(STORE, JSON.stringify(S)); } catch (e) {}
+      if (!pending) { pending = true; requestAnimationFrame(function () { pending = false; apply(); }); }
+    }
+
+    GROUPS.forEach(function (g, gi) {
+      var det = document.createElement("details");
+      if (gi === 0 || g.name === "Arrow") det.open = true;
+      var sum = document.createElement("summary"); sum.textContent = g.name; det.appendChild(sum);
+      g.fields.forEach(function (f) { det.appendChild(control(f)); });
+      panel.appendChild(det);
+    });
+    document.body.appendChild(panel);
+
+    function control(f) {
+      var row = document.createElement("div"); row.className = "gd-row";
+      var id = "gd-" + f.key;
+      var lab = document.createElement("label"); lab.htmlFor = id;
+      var labelText = f.help.split(/[,(;]/)[0].trim();
+      var rest = f.help.slice(labelText.length).replace(/^[\s,;]+/, "");
+      lab.textContent = labelText;
+      row.appendChild(lab);
+      var ctl = document.createElement("div"); ctl.className = "gd-ctl"; row.appendChild(ctl);
+      var input;
+      if (f.type === "range") {
+        input = document.createElement("input"); input.type = "range";
+        input.min = f.min; input.max = f.max; input.step = f.step; input.value = S[f.key];
+        var num = document.createElement("input"); num.type = "number";
+        num.min = f.min; num.max = f.max; num.step = f.step; num.value = S[f.key];
+        input.addEventListener("input", function () { num.value = input.value; set(f.key, +input.value); });
+        num.addEventListener("input", function () { if (num.value !== "") { input.value = num.value; set(f.key, +num.value); } });
+        ctl.appendChild(input); ctl.appendChild(num);
+      } else if (f.type === "color") {
+        input = document.createElement("input"); input.type = "color";
+        var hex = document.createElement("input"); hex.type = "text"; hex.className = "gd-hex";
+        input.value = /^#[0-9a-f]{6}$/i.test(S[f.key]) ? S[f.key] : "#000000";
+        hex.value = S[f.key];
+        input.addEventListener("input", function () { hex.value = input.value.toUpperCase(); set(f.key, hex.value); });
+        hex.addEventListener("change", function () {
+          if (/^#[0-9a-f]{6}$/i.test(hex.value)) input.value = hex.value;
+          set(f.key, hex.value.trim());
+        });
+        ctl.appendChild(input); ctl.appendChild(hex);
+      } else if (f.type === "select") {
+        input = document.createElement("select");
+        f.options.forEach(function (o) { var op = document.createElement("option"); op.value = o; op.textContent = o; input.appendChild(op); });
+        input.value = S[f.key];
+        input.addEventListener("change", function () {
+          set(f.key, typeof f.def === "number" ? +input.value : input.value);
+        });
+        ctl.appendChild(input);
+      } else if (f.type === "check") {
+        input = document.createElement("input"); input.type = "checkbox"; input.checked = !!S[f.key];
+        input.addEventListener("change", function () { set(f.key, input.checked); });
+        ctl.appendChild(input);
+      } else {
+        input = document.createElement("input"); input.type = "text"; input.value = S[f.key];
+        if (f.type === "font") {
+          input.setAttribute("list", "gd-fonts");
+          input.placeholder = f.key === "titleFont" ? "(same as main font)" : "e.g. Inter";
+          input.addEventListener("change", function () { set(f.key, input.value.trim()); });
+        } else {
+          input.addEventListener("input", function () { set(f.key, input.value); });
+        }
+        ctl.appendChild(input);
+      }
+      input.id = id;
+      var help = document.createElement("small"); help.textContent = (rest ? rest + "  ·  " : "") + "setting: " + f.key; row.appendChild(help);
+      return row;
+    }
+
+    // Preview width
+    var wr = panel.querySelector("#gd-w"), wv = panel.querySelector("#gd-wv");
+    function setWidth(w) {
+      if (!w) { frame.style.width = ""; wv.textContent = "Fit"; wr.value = Math.min(1600, frame.clientWidth); return; }
+      frame.style.width = w + "px"; wv.textContent = w + "px"; wr.value = w;
+    }
+    wr.addEventListener("input", function () { setWidth(+wr.value); });
+    Array.prototype.forEach.call(panel.querySelectorAll("[data-w]"), function (b) {
+      b.addEventListener("click", function () { setWidth(+b.getAttribute("data-w")); });
+    });
+    setWidth(0);
+
+    // Output
+    var msg = panel.querySelector("#gd-msg"), out = panel.querySelector("#gd-out");
+    function say(text, isErr) { msg.textContent = text; msg.className = "gd-msg" + (isErr ? " err" : ""); }
+
+    panel.querySelector("#gd-copy").addEventListener("click", function () {
+      var text = settingsSource();
+      out.value = text; out.style.display = "block";
+      out.focus(); out.select();
+      var ok = function () { say("Copied. Paste it over the settings block at the top of index.html (between the SETTINGS START and END lines)."); };
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(ok, function () { document.execCommand("copy"); ok(); });
+      } else { document.execCommand("copy"); ok(); }
+    });
+
+    panel.querySelector("#gd-dl").addEventListener("click", function () {
+      fetch(location.href.split(/[?#]/)[0], { cache: "no-store" })
+        .then(function (r) { if (!r.ok) throw new Error(); return r.text(); })
+        .then(function (src) {
+          var a = src.indexOf(MARK_START), b = src.indexOf(MARK_END);
+          if (a < 0 || b < 0) throw new Error();
+          var html = src.slice(0, a + MARK_START.length) + "\n" + settingsSource() + "\n" + src.slice(b);
+          var link = document.createElement("a");
+          link.href = URL.createObjectURL(new Blob([html], { type: "text/html" }));
+          link.download = "index.html";
+          document.body.appendChild(link); link.click(); link.remove();
+          say("Downloaded index.html with your settings built in.");
+        })
+        .catch(function () { say("Download only works on the published page (e.g. GitHub Pages). Use Copy settings instead.", true); });
+    });
+
+    panel.querySelector("#gd-reset").addEventListener("click", function () {
+      if (!confirm("Discard your changes and go back to the settings saved in the file?")) return;
+      try { localStorage.removeItem(STORE); } catch (e) {}
+      location.reload();
+    });
   }
 })();
 </script>
