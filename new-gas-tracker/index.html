@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tracking new gas unit projects</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --text: #1a1a1a;
+    --text-muted: #333;
+    --axis: #444;
+    --grid: #e6e6e6;
+    --bg: #ffffff;
+    --font: "Source Sans 3", "Source Sans Pro", Helvetica, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); }
+  body { font-family: var(--font); color: var(--text); }
+
+  .gt {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 16px 16px 12px;
+  }
+  .gt-title {
+    font-size: clamp(22px, 4.2vw, 46px);
+    font-weight: 800;
+    line-height: 1.1;
+    text-align: center;
+    margin: 0 0 clamp(16px, 3vw, 36px);
+    letter-spacing: -0.01em;
+  }
+  .gt-row {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: clamp(56px, 11vw, 150px);
+  }
+  .gt-chart { position: relative; min-width: 0; }
+  .gt-chart h2 {
+    font-size: clamp(15px, 1.9vw, 21px);
+    font-weight: 700;
+    color: var(--text-muted);
+    margin: 0 0 4px;
+    line-height: 1.2;
+  }
+  .gt-legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 2px 12px;
+    font-size: clamp(12px, 1.35vw, 14.5px);
+    color: var(--text-muted);
+    margin: 0 0 6px;
+    min-height: 20px;
+  }
+  .gt-legend span { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+  .gt-legend i { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+  .gt-chart svg { display: block; width: 100%; overflow: visible; }
+  .gt-chart svg text { font-family: var(--font); fill: var(--axis); }
+  .gt-hit { touch-action: pan-y; cursor: crosshair; }
+
+  .gt-arrow { position: absolute; pointer-events: none; }
+  .gt-arrow-down { display: none; justify-content: center; margin: 6px 0 10px; }
+
+  .gt-tooltip {
+    position: absolute;
+    z-index: 5;
+    pointer-events: none;
+    background: #fff;
+    border: 1px solid #d0d0d0;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.15);
+    padding: 8px 10px;
+    font-size: 13px;
+    line-height: 1.35;
+    min-width: 170px;
+    opacity: 0;
+    transition: opacity .12s;
+  }
+  .gt-tooltip.on { opacity: 1; }
+  .gt-tooltip b { display: block; font-size: 14px; margin-bottom: 4px; }
+  .gt-tooltip .r { display: flex; align-items: center; gap: 6px; }
+  .gt-tooltip .r i { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+  .gt-tooltip .r span { flex: 1; }
+  .gt-tooltip .r em { font-style: normal; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .gt-tooltip .t { border-top: 1px solid #e3e3e3; margin-top: 5px; padding-top: 4px; }
+
+  .gt-footer {
+    font-size: clamp(15px, 2.2vw, 24px);
+    margin: clamp(10px, 2vw, 18px) 0 0;
+    color: var(--text);
+  }
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+  }
+
+  /* Narrow embeds: stack the two charts with a downward arrow between them */
+  .gt.stacked .gt-row { grid-template-columns: 1fr; }
+  .gt.stacked .gt-arrow { display: none; }
+  .gt.stacked .gt-arrow-down { display: flex; }
+  .gt.stacked .gt-legend { justify-content: flex-start; }
+</style>
+</head>
+<body>
+<div class="gt" id="gt">
+  <h1 class="gt-title">Tracking number of new gas unit projects</h1>
+  <div class="gt-row" id="gt-row">
+    <div class="gt-chart" id="chart-left"></div>
+    <div class="gt-arrow-down" aria-hidden="true">
+      <svg width="28" height="44" viewBox="0 0 28 44"><path d="M14 2 V34" stroke="#000" stroke-width="6"/><path d="M3 26 L14 41 L25 26" fill="none" stroke="#000" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"/></svg>
+    </div>
+    <div class="gt-chart" id="chart-right"></div>
+    <svg class="gt-arrow" id="gt-arrow" aria-hidden="true"></svg>
+  </div>
+  <p class="gt-footer" id="gt-footer"></p>
+  <table class="sr-only" id="gt-table"></table>
+</div>
+
+<script>
+(function () {
+  /* ------------------------------------------------------------------
+   * DATA — paste the updated tracker export here each quarter.
+   * Tab- or comma-separated, first row = headers. Blank cells count as 0.
+   * ------------------------------------------------------------------ */
+  var RAW = [
+    "YQ\tAlready left development since start of tracking\tShelved\tConstruction\tPre-construction\tAnnounced\tCancelled\tMothballed\tOperating",
+    "2023\t0\t37\t85\t87\t40\t\t\t",
+    "24Q1\t45\t38\t58\t97\t36\t5\t8\t32",
+    "24Q2\t52\t38\t56\t100\t38\t5\t8\t39",
+    "24Q3\t53\t41\t59\t104\t34\t5\t8\t40",
+    "24Q4\t63\t40\t54\t110\t37\t7\t8\t48",
+    "25Q1\t67\t38\t58\t119\t36\t7\t8\t52",
+    "25Q2\t69\t43\t58\t123\t36\t7\t8\t54",
+    "25Q3\t78\t44\t53\t127\t33\t8\t8\t62",
+    "25Q4\t95\t30\t57\t128\t42\t22\t8\t65",
+    "26Q1\t99\t25\t61\t127\t40\t24\t8\t67",
+    "26Q2\t102\t24\t63\t128\t39\t25\t8\t69"
+  ].join("\n");
+
+  var LEFT_KEY = "Already left development since start of tracking";
+
+  /* Series listed bottom-of-stack first. `legend` = show in legend. */
+  var CHARTS = {
+    left: {
+      el: "chart-left",
+      title: "In development",
+      series: [
+        { key: LEFT_KEY, label: "Already left development", color: "#000000", fill: "#333333", legend: false },
+        { key: "Shelved",          color: "#AFA36A" },
+        { key: "Construction",     color: "#F92B21" },
+        { key: "Pre-construction", color: "#F46245" },
+        { key: "Announced",        color: "#FFA3A3" }
+      ],
+      legendOrder: ["Announced", "Pre-construction", "Construction", "Shelved"],
+      totals: function (d) {
+        var inDev = d.Shelved + d.Construction + d["Pre-construction"] + d.Announced;
+        return [["In development", inDev], ["Total tracked", inDev + d[LEFT_KEY]]];
+      }
+    },
+    right: {
+      el: "chart-right",
+      title: "Already left development since start of tracking",
+      series: [
+        { key: "Cancelled",  color: "#46BE50" },
+        { key: "Mothballed", color: "#CFA7E5" },
+        { key: "Operating",  color: "#A954D1" }
+      ],
+      legendOrder: ["Cancelled", "Mothballed", "Operating"],
+      totals: function (d) {
+        return [["Total left development", d.Cancelled + d.Mothballed + d.Operating]];
+      }
+    }
+  };
+
+  var STACK_BREAKPOINT = 640;   // container width (px) below which charts stack
+  var AREA_OPACITY = 0.85;
+  var NS = "http://www.w3.org/2000/svg";
+
+  /* ---------- parse ---------- */
+  var lines = RAW.trim().split(/\r?\n/);
+  var sep = lines[0].indexOf("\t") > -1 ? "\t" : ",";
+  var headers = lines[0].split(sep).map(function (h) { return h.trim(); });
+  var data = lines.slice(1).map(function (line) {
+    var cells = line.split(sep), row = {};
+    headers.forEach(function (h, i) {
+      var v = (cells[i] || "").trim();
+      row[h] = i === 0 ? v : (v === "" ? 0 : +v);
+    });
+    return row;
+  });
+  var PERIOD = headers[0];
+
+  function prettyPeriod(p) {
+    var m = /^(\d{2})Q([1-4])$/.exec(p);
+    return m ? "Q" + m[2] + " 20" + m[1] : p;
+  }
+  function footerPeriod(p) {
+    var m = /^(\d{2})Q([1-4])$/.exec(p);
+    return m ? "20" + m[1] + " Q" + m[2] : p;
+  }
+
+  /* ---------- helpers ---------- */
+  function el(tag, attrs, parent) {
+    var n = document.createElementNS(NS, tag);
+    for (var k in attrs) n.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(n);
+    return n;
+  }
+  function seriesLabel(s) { return s.label || s.key; }
+
+  // Shared y-scale so both panels are directly comparable
+  var yMaxData = 0;
+  Object.keys(CHARTS).forEach(function (id) {
+    data.forEach(function (d) {
+      var t = CHARTS[id].series.reduce(function (a, s) { return a + d[s.key]; }, 0);
+      if (t > yMaxData) yMaxData = t;
+    });
+  });
+  var Y_MAX = yMaxData * 1.04;
+  var tickStep = yMaxData > 250 ? 100 : yMaxData > 100 ? 50 : yMaxData > 40 ? 20 : 10;
+
+  /* ---------- static bits: headings, legends, footer, a11y table ---------- */
+  Object.keys(CHARTS).forEach(function (id) {
+    var c = CHARTS[id], box = document.getElementById(c.el);
+    var h = document.createElement("h2"); h.textContent = c.title; box.appendChild(h);
+    var lg = document.createElement("div"); lg.className = "gt-legend";
+    c.legendOrder.forEach(function (key) {
+      var s = c.series.filter(function (x) { return x.key === key; })[0];
+      var item = document.createElement("span");
+      item.innerHTML = '<i style="background:' + s.color + '"></i>' + seriesLabel(s);
+      lg.appendChild(item);
+    });
+    box.appendChild(lg);
+    c.svg = el("svg", { role: "img", "aria-label": c.title + " — stacked area chart by quarter" }, box);
+    c.tip = document.createElement("div"); c.tip.className = "gt-tooltip"; box.appendChild(c.tip);
+  });
+
+  document.getElementById("gt-footer").textContent =
+    "Power plants tracked since " + data[0][PERIOD] + " | Last update: " + footerPeriod(data[data.length - 1][PERIOD]);
+
+  (function buildTable() {
+    var t = document.getElementById("gt-table");
+    var html = "<caption>Number of new gas unit projects by status and quarter</caption><tr>";
+    headers.forEach(function (h) { html += "<th scope='col'>" + h + "</th>"; });
+    html += "</tr>";
+    data.forEach(function (d) {
+      html += "<tr>";
+      headers.forEach(function (h, i) { html += i ? "<td>" + d[h] + "</td>" : "<th scope='row'>" + d[h] + "</th>"; });
+      html += "</tr>";
+    });
+    t.innerHTML = html;
+  })();
+
+  /* ---------- chart rendering ---------- */
+  function drawChart(c, width, height) {
+    var svg = c.svg;
+    c.tip.classList.remove("on");
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    svg.setAttribute("width", width);
+    svg.setAttribute("height", height);
+    svg.setAttribute("viewBox", "0 0 " + width + " " + height);
+
+    var fs = width < 360 ? 12 : width < 480 ? 13 : 15;
+    var m = { top: 8, right: 14, bottom: fs + 14, left: fs * 2.4 + 8 };
+    var iw = width - m.left - m.right, ih = height - m.top - m.bottom;
+    var n = data.length;
+    var pad = Math.min(24, iw * 0.04);            // inset so first/last dots aren't on the edge
+    var step = (iw - pad * 2) / (n - 1);
+    var x = function (i) { return m.left + pad + i * step; };
+    var y = function (v) { return m.top + ih - (v / Y_MAX) * ih; };
+    c.x = x; c.y = y; c.m = m; c.step = step;
+
+    // grid + y labels
+    var g = el("g", {}, svg);
+    for (var v = 0; v <= Y_MAX; v += tickStep) {
+      if (v > 0) el("line", { x1: m.left, x2: width - m.right, y1: y(v), y2: y(v), stroke: "#e8e8e8" }, g);
+      var t = el("text", { x: m.left - 8, y: y(v), "text-anchor": "end", "dominant-baseline": "middle", "font-size": fs }, g);
+      t.textContent = v;
+    }
+    el("line", { x1: m.left, x2: width - m.right, y1: y(0), y2: y(0), stroke: "#cfcfcf" }, g);
+
+    // x labels: always first period, then every 4th counting back from the latest, avoiding collisions
+    var minGap = fs * 3;
+    var picks = [0];
+    for (var i = n - 1; i > 0; i -= 4) picks.push(i);
+    var placed = [];
+    picks.forEach(function (i) {
+      var px = x(i);
+      if (placed.some(function (q) { return Math.abs(q - px) < minGap; })) return;
+      placed.push(px);
+      el("line", { x1: px, x2: px, y1: y(0), y2: y(0) + 5, stroke: "#cfcfcf" }, g);
+      var tx = el("text", { x: px, y: y(0) + fs + 6, "text-anchor": "middle", "font-size": fs }, g);
+      tx.textContent = data[i][PERIOD];
+    });
+
+    // stack
+    var base = data.map(function () { return 0; });
+    var layers = c.series.map(function (s) {
+      var pts = data.map(function (d, i) {
+        var y0 = base[i], y1 = y0 + d[s.key];
+        base[i] = y1;
+        return { y0: y0, y1: y1 };
+      });
+      return { s: s, pts: pts };
+    });
+
+    var areas = el("g", {}, svg);
+    layers.forEach(function (L) {
+      var top = L.pts.map(function (p, i) { return x(i).toFixed(1) + "," + y(p.y1).toFixed(1); });
+      var bot = L.pts.map(function (p, i) { return x(i).toFixed(1) + "," + y(p.y0).toFixed(1); }).reverse();
+      el("path", { d: "M" + top.join("L") + "L" + bot.join("L") + "Z", fill: L.s.fill || L.s.color, "fill-opacity": AREA_OPACITY }, areas);
+      el("path", { d: "M" + top.join("L"), fill: "none", stroke: L.s.color, "stroke-width": 2, "stroke-linejoin": "round", "stroke-opacity": L.s.fill ? 0.6 : 1 }, areas);
+    });
+
+    var r = width < 420 ? 3.2 : 4.5;
+    var guide = el("line", { y1: m.top, y2: y(0), stroke: "#888", "stroke-dasharray": "3 3", opacity: 0 }, svg);
+    var dots = el("g", {}, svg);
+    c.dotEls = layers.map(function (L) {
+      return L.pts.map(function (p, i) {
+        return el("circle", { cx: x(i), cy: y(p.y1), r: r, fill: L.s.color }, dots);
+      });
+    });
+    c.layers = layers;
+
+    // interaction
+    var hit = el("rect", { x: m.left, y: m.top, width: iw, height: ih, fill: "transparent", class: "gt-hit" }, svg);
+    var active = -1;
+    function show(evt) {
+      var rect = svg.getBoundingClientRect();
+      var mx = (evt.clientX - rect.left) * (width / rect.width);
+      var idx = Math.max(0, Math.min(n - 1, Math.round((mx - m.left - pad) / step)));
+      if (idx !== active) {
+        if (active > -1) c.dotEls.forEach(function (row) { row[active].setAttribute("r", r); });
+        c.dotEls.forEach(function (row) { row[idx].setAttribute("r", r * 1.55); });
+        active = idx;
+        guide.setAttribute("x1", x(idx)); guide.setAttribute("x2", x(idx));
+        guide.setAttribute("opacity", 1);
+        c.tip.innerHTML = tooltipHTML(c, idx);
+      }
+      c.tip.classList.add("on");
+      var tipW = c.tip.offsetWidth, tipH = c.tip.offsetHeight;
+      var boxW = c.svg.parentNode.clientWidth;
+      var pr = c.svg.parentNode.getBoundingClientRect();
+      var ox = rect.left - pr.left, oy = rect.top - pr.top;
+      var left = ox + x(idx) + 14;
+      if (left + tipW > boxW) left = ox + x(idx) - tipW - 14;
+      if (left < 0) left = Math.max(0, (boxW - tipW) / 2);
+      var ty = oy + Math.max(m.top, Math.min(y(layers[layers.length - 1].pts[idx].y1) - tipH / 2, y(0) - tipH));
+      c.tip.style.left = left + "px";
+      c.tip.style.top = ty + "px";
+    }
+    function hide() {
+      c.tip.classList.remove("on");
+      guide.setAttribute("opacity", 0);
+      if (active > -1) c.dotEls.forEach(function (row) { row[active].setAttribute("r", r); });
+      active = -1;
+    }
+    hit.addEventListener("pointermove", show);
+    hit.addEventListener("pointerdown", show);
+    hit.addEventListener("pointerleave", hide);
+  }
+
+  function tooltipHTML(c, i) {
+    var d = data[i];
+    var h = "<b>" + prettyPeriod(d[PERIOD]) + "</b>";
+    c.series.slice().reverse().forEach(function (s) {
+      h += '<div class="r"><i style="background:' + s.color + '"></i><span>' + seriesLabel(s) + "</span><em>" + d[s.key] + "</em></div>";
+    });
+    c.totals(d).forEach(function (t, k) {
+      h += '<div class="r' + (k === 0 ? " t" : "") + '"><span>' + t[0] + "</span><em>" + t[1] + "</em></div>";
+    });
+    return h;
+  }
+
+  /* ---------- arrow linking "already left" (left) to the right panel ---------- */
+  function drawArrow() {
+    var a = document.getElementById("gt-arrow");
+    while (a.firstChild) a.removeChild(a.firstChild);
+    var row = document.getElementById("gt-row").getBoundingClientRect();
+    var L = CHARTS.left, R = CHARTS.right;
+    var ls = L.svg.getBoundingClientRect(), rs = R.svg.getBoundingClientRect();
+    var last = data.length - 1;
+    var scale = ls.width / (+L.svg.getAttribute("width"));
+    var x1 = ls.left - row.left + (L.x(last) + 10) * scale;
+    var x2 = rs.left - row.left - 4;
+    var yy = ls.top - row.top + L.y(data[last][LEFT_KEY] / 2) * scale;
+    if (x2 - x1 < 30) return;
+    var w = x2 - x1, h = 30, sw = Math.max(4, Math.min(8, w / 18));
+    a.style.left = x1 + "px"; a.style.top = (yy - h / 2) + "px";
+    a.setAttribute("width", w); a.setAttribute("height", h);
+    var head = Math.min(18, w * 0.3);
+    el("path", { d: "M0 " + h / 2 + " H" + (w - head * 0.6), stroke: "#000", "stroke-width": sw }, a);
+    el("path", { d: "M" + (w - head) + " " + (h / 2 - head * 0.75) + " L" + (w - sw / 2) + " " + h / 2 + " L" + (w - head) + " " + (h / 2 + head * 0.75),
+      fill: "none", stroke: "#000", "stroke-width": sw, "stroke-linejoin": "round", "stroke-linecap": "round" }, a);
+  }
+
+  /* ---------- layout / responsiveness ---------- */
+  var root = document.getElementById("gt");
+  var lastW = -1;
+  function render() {
+    var W = root.clientWidth;
+    if (W === lastW) return;
+    lastW = W;
+    root.classList.toggle("stacked", W < STACK_BREAKPOINT);
+    var chartW = document.getElementById("chart-left").clientWidth;
+    var stacked = W < STACK_BREAKPOINT;
+    var chartH = stacked ? Math.max(240, Math.min(360, chartW * 0.7))
+                         : Math.max(260, Math.min(620, chartW * 0.88));
+    drawChart(CHARTS.left, chartW, chartH);
+    drawChart(CHARTS.right, chartW, chartH);
+    if (!stacked) drawArrow();
+    postHeight();
+  }
+
+  // Lets a parent page auto-size the iframe (see README / embed snippet)
+  function postHeight() {
+    if (window.parent === window) return;
+    window.parent.postMessage({ type: "gas-tracker-height", height: document.documentElement.scrollHeight }, "*");
+  }
+
+  if (window.ResizeObserver) new ResizeObserver(render).observe(root);
+  else window.addEventListener("resize", render);
+  render();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { lastW = -1; render(); });
+})();
+</script>
+</body>
+</html>
