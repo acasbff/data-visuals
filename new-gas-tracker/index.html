@@ -124,7 +124,16 @@
 <script>
 (function () {
   /* ------------------------------------------------------------------
-   * DATA — paste the updated tracker export here each quarter.
+   * LIVE DATA — read from Google Sheets on every page load.
+   * The sheet must be shared as "Anyone with the link: Viewer".
+   * Set SHEET_ID to "" to use only the fallback data below.
+   * ------------------------------------------------------------------ */
+  var SHEET_ID = "1pn2TOwSXL6ujuXxcuK5J7IdvVU25q-9BxPi6apM500w";
+  var SHEET_NAME = "Gas tracker";
+
+  /* ------------------------------------------------------------------
+   * FALLBACK DATA — shown if the Google Sheet can't be reached.
+   * Worth refreshing now and then so it's never far behind the sheet.
    * Tab- or comma-separated, first row = headers. Blank cells count as 0.
    * ------------------------------------------------------------------ */
   var RAW = [
@@ -181,18 +190,71 @@
   var AREA_OPACITY = 0.85;
   var NS = "http://www.w3.org/2000/svg";
 
-  /* ---------- parse ---------- */
-  var lines = RAW.trim().split(/\r?\n/);
-  var sep = lines[0].indexOf("\t") > -1 ? "\t" : ",";
-  var headers = lines[0].split(sep).map(function (h) { return h.trim(); });
-  var data = lines.slice(1).map(function (line) {
-    var cells = line.split(sep), row = {};
-    headers.forEach(function (h, i) {
-      var v = (cells[i] || "").trim();
-      row[h] = i === 0 ? v : (v === "" ? 0 : +v);
+  /* ---------- parse (tab-separated, or CSV with quoted fields) ---------- */
+  function parseTable(text) {
+    text = text.replace(/^\uFEFF/, "").trim();
+    var sep = text.split(/\r?\n/)[0].indexOf("\t") > -1 ? "\t" : ",";
+    var rows = [], row = [], cell = "", q = false;
+    for (var i = 0; i < text.length; i++) {
+      var ch = text[i];
+      if (q) {
+        if (ch === '"' && text[i + 1] === '"') { cell += '"'; i++; }
+        else if (ch === '"') q = false;
+        else cell += ch;
+      } else if (ch === '"') q = true;
+      else if (ch === sep) { row.push(cell); cell = ""; }
+      else if (ch === "\n" || ch === "\r") {
+        if (ch === "\r" && text[i + 1] === "\n") i++;
+        row.push(cell); rows.push(row); row = []; cell = "";
+      } else cell += ch;
+    }
+    row.push(cell); rows.push(row);
+
+    var headers = rows[0].map(function (h) { return h.trim(); });
+    var data = rows.slice(1)
+      .filter(function (r) { return (r[0] || "").trim() !== ""; })   // skip blank rows
+      .map(function (r) {
+        var o = {};
+        headers.forEach(function (h, i) {
+          var v = (r[i] || "").trim();
+          o[h] = i === 0 ? v : (v === "" ? 0 : +v.replace(/,/g, ""));
+        });
+        return o;
+      });
+    return { headers: headers, data: data };
+  }
+
+  function isValid(t) {
+    if (!t.data.length) return false;
+    var needed = [];
+    Object.keys(CHARTS).forEach(function (id) { CHARTS[id].series.forEach(function (s) { needed.push(s.key); }); });
+    return needed.every(function (k) {
+      return t.headers.indexOf(k) > -1 && t.data.every(function (d) { return isFinite(d[k]); });
     });
-    return row;
-  });
+  }
+
+  function loadData() {
+    var fallback = parseTable(RAW);
+    if (!SHEET_ID || !window.fetch) return Promise.resolve(fallback);
+    var url = "https://docs.google.com/spreadsheets/d/" + SHEET_ID +
+      "/gviz/tq?tqx=out:csv&headers=1&sheet=" + encodeURIComponent(SHEET_NAME);
+    return fetch(url, { cache: "no-store" })
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
+      .then(function (text) {
+        var t = parseTable(text);
+        if (!isValid(t)) throw new Error("sheet columns don't match the expected headers");
+        return t;
+      })
+      .catch(function (err) {
+        console.warn("Gas tracker: using fallback data (" + err.message + ")");
+        return fallback;
+      });
+  }
+
+  loadData().then(start);
+
+  function start(table) {
+  var headers = table.headers, data = table.data;
   var PERIOD = headers[0];
 
   function prettyPeriod(p) {
@@ -427,6 +489,7 @@
   else window.addEventListener("resize", render);
   render();
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { lastW = -1; render(); });
+  }
 })();
 </script>
 </body>
